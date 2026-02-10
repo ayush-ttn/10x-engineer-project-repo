@@ -1,6 +1,7 @@
 """FastAPI routes for PromptLab"""
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse  # Added import
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 
@@ -62,17 +63,24 @@ def list_prompts(
     return PromptList(prompts=prompts, total=len(prompts))
 
 
-@app.get("/prompts/{prompt_id}", response_model=Prompt)
+@app.get("/prompts/{prompt_id}", response_model=Prompt, responses={404: {"content": {"application/json": {"example": {"error": "Prompt not available"}}}}})
 def get_prompt(prompt_id: str):
-    # BUG #1: This will raise a 500 error if prompt doesn't exist
-    # because we're accessing .id on None
-    # Should return 404 instead!
-    prompt = storage.get_prompt(prompt_id)
-    
-    # This line causes the bug - accessing attribute on None
-    if prompt.id:
-        return prompt
+    """Retrieve a prompt by its unique identifier.
 
+    Args:
+        prompt_id: The unique identifier of the prompt to retrieve.
+
+    Returns:
+        The Prompt object if found.
+
+    Raises:
+        HTTPException: If the prompt is not found, raises a 404 error.
+    """
+    prompt = storage.get_prompt(prompt_id)
+    if not prompt:
+        return JSONResponse(status_code=404, content={"error": "Prompt not available"})
+    return prompt
+    
 
 @app.post("/prompts", response_model=Prompt, status_code=201)
 def create_prompt(prompt_data: PromptCreate):
@@ -125,7 +133,6 @@ def delete_prompt(prompt_id: str):
 
 
 # ============== Collection Endpoints ==============
-
 @app.get("/collections", response_model=CollectionList)
 def list_collections():
     collections = storage.get_all_collections()
@@ -138,7 +145,7 @@ def get_collection(collection_id: str):
     if not collection:
         raise HTTPException(status_code=404, detail="Collection not found")
     return collection
-
+    
 
 @app.post("/collections", response_model=Collection, status_code=201)
 def create_collection(collection_data: CollectionCreate):
@@ -158,3 +165,4 @@ def delete_collection(collection_id: str):
     # Missing: Handle prompts that belong to this collection!
     
     return None
+
