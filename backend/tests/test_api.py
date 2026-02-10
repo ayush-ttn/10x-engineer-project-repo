@@ -175,5 +175,4 @@ class TestCollections:
         prompts = client.get("/prompts").json()["prompts"]
         if prompts:
             # Prompt exists with orphaned collection_id
-            assert prompts[0]["collection_id"] == collection_id
-            # After fix, collection_id should be None or prompt should be deleted
+            assert prompts[0]["collection_id"] == None
