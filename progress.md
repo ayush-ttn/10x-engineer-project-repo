@@ -26,6 +26,11 @@ This document tracks the progress of the PromptLab project tasks week by week. I
 - Retained comprehensive docstrings for improved maintainability.
 - Verified that existing tests cover this functionality and passed successfully without modification.
 
+#### Task 1.4: Fix Bug #3 - Sorting is Backwards
+- Corrected the sorting logic in the `sort_prompts_by_date` function to utilize the `descending` parameter correctly.
+- Updated the corresponding endpoint to ensure prompts are returned in descending order, with the newest first.
+- Verified the resolution by running the specific sorting test, which passed successfully.
+
 ### Context for Next Steps
-This file provides the necessary background and project setup insights to jump into subsequent tasks efficiently. For next steps, continue with Task 1.4 to address sorting logic.
+With the sorting logic corrected, the next step is to address Task 1.5 related to the Collection Deletion issue. This involves determining a strategy for handling orphaned prompts.
 
