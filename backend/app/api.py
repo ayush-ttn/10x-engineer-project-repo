@@ -78,7 +78,7 @@ def get_prompt(prompt_id: str):
     """
     prompt = storage.get_prompt(prompt_id)
     if not prompt:
-        return JSONResponse(status_code=404, content={"error": "Prompt not available"})
+        raise HTTPException(status_code=404, detail="Prompt not available")
     return prompt
     
 
@@ -110,13 +110,13 @@ def update_prompt(prompt_id: str, prompt_data: PromptUpdate):
     """
     existing = storage.get_prompt(prompt_id)
     if not existing:
-        return JSONResponse(status_code=404, content={"error": "Prompt not available"})
+        raise HTTPException(status_code=404, detail="Prompt not available")
     
     # Validate collection if provided
     if prompt_data.collection_id:
         collection = storage.get_collection(prompt_data.collection_id)
         if not collection:
-            return JSONResponse(status_code=404, content={"error": "Collection not found"})
+            return HTTPException(status_code=404, detail="Collection not found")
     
     updated_prompt = Prompt(
         id=existing.id,
