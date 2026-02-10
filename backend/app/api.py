@@ -96,18 +96,28 @@ def create_prompt(prompt_data: PromptCreate):
 
 @app.put("/prompts/{prompt_id}", response_model=Prompt)
 def update_prompt(prompt_id: str, prompt_data: PromptUpdate):
+    """Update an existing prompt.
+
+    Args:
+        prompt_id: The unique identifier of the prompt to update.
+        prompt_data: The new data for the prompt, provided as a PromptUpdate object.
+
+    Returns:
+        The updated Prompt object.
+
+    Raises:
+        HTTPException: If the prompt or the specified collection is not found, raises a 404 or 400 error respectively.
+    """
     existing = storage.get_prompt(prompt_id)
     if not existing:
-        raise HTTPException(status_code=404, detail="Prompt not found")
+        return JSONResponse(status_code=404, content={"error": "Prompt not available"})
     
     # Validate collection if provided
     if prompt_data.collection_id:
         collection = storage.get_collection(prompt_data.collection_id)
         if not collection:
-            raise HTTPException(status_code=400, detail="Collection not found")
+            return JSONResponse(status_code=404, content={"error": "Collection not found"})
     
-    # BUG #2: We're not updating the updated_at timestamp!
-    # The updated prompt keeps the old timestamp
     updated_prompt = Prompt(
         id=existing.id,
         title=prompt_data.title,
@@ -115,7 +125,7 @@ def update_prompt(prompt_id: str, prompt_data: PromptUpdate):
         description=prompt_data.description,
         collection_id=prompt_data.collection_id,
         created_at=existing.created_at,
-        updated_at=existing.updated_at  # BUG: Should be get_current_time()
+        updated_at=get_current_time()
     )
     
     return storage.update_prompt(prompt_id, updated_prompt)
