@@ -128,6 +128,74 @@ class TestPrompts:
         # Newest (Second) should be first
         assert prompts[0]["title"] == "Second"  # Will fail until Bug #3 fixed
 
+    def test_patch_prompt_partial_update(self, client: TestClient, sample_prompt_data):
+        """Test partially updating a prompt with PATCH request.
+        
+        PATCH should only update provided fields and preserve others.
+        """
+        # Create a prompt first
+        create_response = client.post("/prompts", json=sample_prompt_data)
+        prompt_id = create_response.json()["id"]
+        original_content = create_response.json()["content"]
+        original_description = create_response.json()["description"]
+        
+        # Patch only the title
+        patch_data = {"title": "New Title Only"}
+        response = client.patch(f"/prompts/{prompt_id}", json=patch_data)
+        assert response.status_code == 200
+        data = response.json()
+        
+        # Title should be updated
+        assert data["title"] == "New Title Only"
+        # Content and description should remain unchanged
+        assert data["content"] == original_content
+        assert data["description"] == original_description
+        # Timestamp should be updated
+        assert data["updated_at"] != create_response.json()["updated_at"]
+    
+    def test_patch_prompt_update_multiple_fields(self, client: TestClient, sample_prompt_data):
+        """Test updating multiple fields with PATCH."""
+        # Create a prompt first
+        create_response = client.post("/prompts", json=sample_prompt_data)
+        prompt_id = create_response.json()["id"]
+        
+        # Patch multiple fields
+        patch_data = {
+            "title": "Updated Title",
+            "content": "Updated content here"
+        }
+        response = client.patch(f"/prompts/{prompt_id}", json=patch_data)
+        assert response.status_code == 200
+        data = response.json()
+        
+        assert data["title"] == "Updated Title"
+        assert data["content"] == "Updated content here"
+    
+    def test_patch_prompt_not_found(self, client: TestClient):
+        """Test PATCH request on non-existent prompt returns 404."""
+        patch_data = {"title": "New Title"}
+        response = client.patch("/prompts/nonexistent-id", json=patch_data)
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Prompt not available"
+    
+    def test_patch_prompt_empty_update(self, client: TestClient, sample_prompt_data):
+        """Test PATCH with no fields provided preserves all data."""
+        # Create a prompt first
+        create_response = client.post("/prompts", json=sample_prompt_data)
+        prompt_id = create_response.json()["id"]
+        original_data = create_response.json()
+        
+        # Patch with empty/None fields
+        patch_data = {"title": None, "content": None, "description": None}
+        response = client.patch(f"/prompts/{prompt_id}", json=patch_data)
+        assert response.status_code == 200
+        data = response.json()
+        
+        # All fields should remain unchanged
+        assert data["title"] == original_data["title"]
+        assert data["content"] == original_data["content"]
+        assert data["description"] == original_data["description"]
+
 
 class TestCollections:
     """Tests for collection endpoints."""
