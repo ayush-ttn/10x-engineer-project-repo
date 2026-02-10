@@ -116,7 +116,7 @@ def update_prompt(prompt_id: str, prompt_data: PromptUpdate):
     if prompt_data.collection_id:
         collection = storage.get_collection(prompt_data.collection_id)
         if not collection:
-            return HTTPException(status_code=404, detail="Collection not found")
+            raise HTTPException(status_code=404, detail="Collection not found")
     
     updated_prompt = Prompt(
         id=existing.id,
