@@ -37,5 +37,13 @@ This document tracks the progress of the PromptLab project tasks week by week. I
 - Verified through testing that prompts are disassociated correctly without being deleted.
 - Updated function docstrings to accurately reflect the new behavior.
 
+#### Task 1.6: Implement Missing Endpoint
+- Implemented the PATCH endpoint to allow partial updates on prompts via `/prompts/{id}`.
+- Updated the `PromptUpdate` model to allow for optional fields, enabling selective updates.
+- Verified that updated fields correctly persist to the storage system, with `updated_at` timestamp consistently refreshed.
+- Documented the new endpoint and changes with comprehensive docstrings for maintainability.
+- Encountered issues while making changes due to technical difficulties with tools that delayed the implementation.
+
 ### Context for Next Steps
-With the collection deletion logic effectively managing orphaned prompts, the next step is to implement the PATCH endpoint for partial updates in Task 1.6.
+All the tasks for Week 1 are completed. We can now move on to the next week task planning.
+
