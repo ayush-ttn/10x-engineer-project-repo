@@ -31,6 +31,11 @@ This document tracks the progress of the PromptLab project tasks week by week. I
 - Updated the corresponding endpoint to ensure prompts are returned in descending order, with the newest first.
 - Verified the resolution by running the specific sorting test, which passed successfully.
 
-### Context for Next Steps
-With the sorting logic corrected, the next step is to address Task 1.5 related to the Collection Deletion issue. This involves determining a strategy for handling orphaned prompts.
+#### Task 1.5: Fix Bug #4 - Collection Deletion Issue
+- Implemented logic to handle orphaned prompts when a collection is deleted.
+- Fetches all prompts with the specified `collection_id` and updates their `collection_id` to `None`.
+- Verified through testing that prompts are disassociated correctly without being deleted.
+- Updated function docstrings to accurately reflect the new behavior.
 
+### Context for Next Steps
+With the collection deletion logic effectively managing orphaned prompts, the next step is to implement the PATCH endpoint for partial updates in Task 1.6.
