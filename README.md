@@ -1,167 +1,148 @@
-# PromptLab
 
-**Your AI Prompt Engineering Platform**
+# PromptLab: An AI-driven Incident Management API
 
----
-
-## Welcome to the Team! 👋
-
-Congratulations on joining the PromptLab engineering team! You've been brought on to help us build the next generation of prompt engineering tools.
-
-### What is PromptLab?
-
-PromptLab is an internal tool for AI engineers to **store, organize, and manage their prompts**. Think of it as a "Postman for Prompts" — a professional workspace where teams can:
-
-- 📝 Store prompt templates with variables (`{{input}}`, `{{context}}`)
-- 📁 Organize prompts into collections
-- 🏷️ Tag and search prompts
-- 📜 Track version history
-- 🧪 Test prompts with sample inputs
-
-### The Current Situation
-
-The previous developer left us with a *partially working* backend. The core structure is there, but:
-
-- There are **several bugs** that need fixing
-- Some **features are incomplete**
-- The **documentation is minimal** (you'll fix that)
-- There are **no tests** worth mentioning
-- **No CI/CD pipeline** exists
-- **No frontend** has been built yet
-
-Your job over the next 4 weeks is to transform this into a **production-ready, full-stack application**.
+**Effortless Incident Management, Reinvented with AI**
 
 ---
 
-## Quick Start
+## Project Overview
+PromptLab is a backend service designed for managing prompts and their collections. It provides APIs to efficiently create, organize, and handle prompts and collections, ensuring an efficient workflow and ease of management. The current focus is on setting the foundation for a full-stack application that can scale as the needs of prompt management grow.
+
+### Key Features
+- 📋 RESTful API supporting prompt and collection creation, updates, retrieval, and deletion.
+- 🛠 Highly modular architecture using FastAPI and Pydantic.
+- ⚡ In-memory data persistence mimicking database interactions with scope for future extensions.
+
+
+---
+
+## Setup Instructions
 
 ### Prerequisites
 
 - Python 3.10+
-- Node.js 18+ (for Week 4)
-- Git
+- FastAPI
+- Git for version control
 
-### Run Locally
+### Installation
 
-```bash
-# Clone the repo
-git clone <your-repo-url>
-cd promptlab
-
-# Set up backend
-cd backend
-pip install -r requirements.txt
-python main.py
-```
-
-API runs at: http://localhost:8000
-
-API docs at: http://localhost:8000/docs
-
-### Run Tests
+To set up the backend locally:
 
 ```bash
-cd backend
-pytest tests/ -v
+# Clone the repository
+$ git clone <repo-url>
+$ cd promptlab
+
+# Navigate to the backend directory
+$ cd backend
+
+# Install dependencies
+$ pip install -r requirements.txt
+
+# Run the application
+$ python main.py
+```
+
+This will start the FastAPI server at: [http://localhost:8000](http://localhost:8000)
+
+### Testing
+
+Run unit tests to ensure everything is working smoothly:
+
+```bash
+$ cd backend
+$ pytest tests/ -v
 ```
 
 ---
 
-## Project Structure
+## API Endpoints Reference
 
-```
-promptlab/
-├── README.md                    # You are here
-├── PROJECT_BRIEF.md             # Your assignment details
-├── GRADING_RUBRIC.md            # How you'll be graded
-│
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── api.py              # FastAPI routes (has bugs!)
-│   │   ├── models.py           # Pydantic models
-│   │   ├── storage.py          # In-memory storage
-│   │   └── utils.py            # Helper functions
-│   ├── tests/
-│   │   ├── __init__.py
-│   │   ├── test_api.py         # Basic tests
-│   │   └── conftest.py         # Test fixtures
-│   ├── main.py                 # Entry point
-│   └── requirements.txt
-│
-├── frontend/                    # You'll create this in Week 4
-├── specs/                       # You'll create this in Week 2
-├── docs/                        # You'll create this in Week 2
-└── .github/                     # You'll set up CI/CD in Week 3
-```
+### Overview
+Utilize the following RESTful endpoints to interact with the PromptLab API. Full documentation is available via automatically generated API docs at: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+### Endpoints Listing
+
+- **GET** `/health`: Check API service health status.
+- **GET** `/prompts`: Retrieve all prompts in the system.
+- **POST** `/prompts`: Create a new prompt entry.
+- **GET** `/prompts/{id}`: Retrieve a prompt by ID.
+- **PUT** `/prompts/{id}`: Update an existing prompt by ID.
+- **PATCH** `/prompts/{id}`: Partial update to an existing prompt based on provided fields.
+- **DELETE** `/prompts/{id}`: Remove a prompt by its ID.
+- **GET** `/collections`: List all collections.
+- **POST** `/collections`: Create a new collection.
+- **GET** `/collections/{id}`: Obtain details of a specific collection by ID.
+- **DELETE** `/collections/{id}`: Delete a specified collection and manage prompt orphaning.
 
 ---
 
-## Your Mission
+## Data Models
 
-### 🧪 Experimentation Encouraged!
-While we provide guidelines, **you are the engineer**. If you see a better way to solve a problem using AI, do it!
-- Want to swap the storage layer for a real database? **Go for it.**
-- Want to add Authentication? **Do it.**
-- Want to rewrite the API in a different style? **As long as tests pass, you're clear.**
+### Prompt Model
+```python
+from pydantic import BaseModel, Field
+from typing import Optional
+import datetime
 
-The goal is to learn how to build *better* software *faster* with AI. Don't be afraid to break things and rebuild them better.
+class Prompt(BaseModel):
+    id: str
+    title: str
+    content: str
+    created_at: datetime.datetime
+    updated_at: Optional[datetime.datetime]
+    collection_id: Optional[str]
+```
 
-### Week 1: Fix the Backend
-- Understand this codebase using AI
-- Find and fix the bugs
-- Implement missing features
+### Collection Model
+```python
+class Collection(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    created_at: datetime.datetime
+```
 
-### Week 2: Document Everything
-- Write proper documentation
-- Create feature specifications
-- Set up coding standards
-
-### Week 3: Make it Production-Ready
-- Write comprehensive tests
-- Implement new features with TDD
-- Set up CI/CD and Docker
-
-### Week 4: Build the Frontend
-- Create a React frontend
-- Connect it to the backend
-- Polish the user experience
+These models dictate the structure and validation of data transacted within this API.
 
 ---
 
-## API Endpoints (Current)
+## Usage Examples
 
-| Method | Endpoint | Description | Status |
-|--------|----------|-------------|--------|
-| GET | `/health` | Health check | ✅ Works |
-| GET | `/prompts` | List all prompts | ⚠️ Has issues |
-| GET | `/prompts/{id}` | Get single prompt | ❌ Bug |
-| POST | `/prompts` | Create prompt | ✅ Works |
-| PUT | `/prompts/{id}` | Update prompt | ⚠️ Has issues |
-| DELETE | `/prompts/{id}` | Delete prompt | ✅ Works |
-| GET | `/collections` | List collections | ✅ Works |
-| GET | `/collections/{id}` | Get collection | ✅ Works |
-| POST | `/collections` | Create collection | ✅ Works |
-| DELETE | `/collections/{id}` | Delete collection | ❌ Bug |
+### Create a Prompt
+Use the API to store a new prompt:
+```bash
+curl -X POST "http://localhost:8000/prompts" -H "accept: application/json" -H "Content-Type: application/json" -d '{"title": "Server Down", "content": "Investigate server outage", "collection_id": "network-issues"}'
+```
+
+### Retrieve All Prompts
+Fetch a list of all prompts:
+```bash
+curl -X GET "http://localhost:8000/prompts" -H "accept: application/json"
+```
+
+### Update an Existing Prompt
+```bash
+curl -X PUT "http://localhost:8000/prompts/{id}" -H "accept: application/json" -H "Content-Type: application/json" -d '{"title": "Updated Title", "content": "New Content"}'
+```
 
 ---
 
 ## Tech Stack
-
-- **Backend**: Python 3.10+, FastAPI, Pydantic
-- **Frontend**: React, Vite (Week 4)
-- **Testing**: pytest
-- **DevOps**: Docker, GitHub Actions (Week 3)
-
----
-
-## Need Help?
-
-1. **Use AI tools** — This is an AI-assisted coding course!
-2. Read the `PROJECT_BRIEF.md` for detailed instructions
-3. Check `GRADING_RUBRIC.md` to understand expectations
-4. Ask questions in the course forum
+- **Backend Framework**: FastAPI
+- **Data Models**: Pydantic
+- **Test Framework**: Pytest
+- **Version Control**: Git
 
 ---
 
-Good luck, and welcome to the team! 🚀
+## Need Assistance?
+
+If you have any questions or need some help:
+- Dive into the FastAPI [documentation](https://fastapi.tiangolo.com/)
+- Reach out via the project forums
+- Engage with the AI tools integrated within this project for smooth navigation and issues resolving.
+
+---
+
+Good luck, and enjoy the development journey in PromptLab! 🚀
