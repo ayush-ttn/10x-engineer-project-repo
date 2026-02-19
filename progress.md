@@ -55,8 +55,17 @@ All the tasks for Week 1 are completed. We can now move on to the next week task
 - Enhanced `README.md` to provide a thorough overview of PromptLab's project objectives, setup instructions, and usage examples.
 - Updated project context to accurately reflect prompt management instead of incident management.
 
+#### Task 2.2: Add Docstrings to All Code
+- Added Google-style docstrings to functions and classes in `app/api.py`, `app/models.py`, `app/utils.py`, `app/storage.py`.
+- Ensured each function has detailed documentation on parameters, return values, and exceptions raised.
+- Verified that all critical functions and classes across the main application have appropriate documentation.
+- Improved clarity and maintainability of the codebase through comprehensive inline comments.
+
 ### Context for Next Steps
-With the README successfully revised, the next steps involve:
-- Adding Google-style docstrings to all functions and classes across the codebase.
-- Creating detailed API reference documentation and feature specifications for upcoming development changes. This thorough documentation will ensure clarity and alignment in preparation for future testing and integration phases.
+With comprehensive docstrings and an updated README in place, the next steps include:
+- Creating detailed API reference documentation (`docs/API_REFERENCE.md`).
+- Formulating feature specifications for future development tasks in the `specs/` directory.
+- Aligning these documents with planned testing and integration processes to facilitate Week 3 tasks related to Testing, DevOps, and CI/CD enhancements.
+
+
 
