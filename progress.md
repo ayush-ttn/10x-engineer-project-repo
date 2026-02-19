@@ -66,8 +66,16 @@ All the tasks for Week 1 are completed. We can now move on to the next week task
 - Ensured adherence to documentation standards reflective of internal schema.
 - Verified consistency between docstrings and API reference entries.
 
+#### Task 2.4: Create Custom AI Coding Agent
+- Implemented custom rules in .continue/rules with project-specific coding standards.
+- Defined preferred patterns, conventions, and file-naming guidelines.
+- Documented error handling approaches and testing requirements for AI assistants.
+
 ### Context for Future Sessions
-- Finalize and review specifications for features within `specs/prompt-versions.md` and `specs/tagging-system.md`.
-- Initiate setup for Week 3 focus: develop a comprehensive test suite, ensure ≥80% coverage, and establish CI/CD pipelines.
-- Explore opportunities for leveraging containerization using Docker and defining development environment configurations.
+- Focus on finalizing and reviewing the feature specifications in `specs/prompt-versions.md` and `specs/tagging-system.md`.
+- Prepare for Week 3, concentrating on testing and DevOps setup.
+  - Develop a comprehensive test suite to achieve ≥80% code coverage.
+  - Set up continuous integration with GitHub Actions.
+  - Explore Docker containerization for environment consistency.
+- Align the development process to support CI/CD practices and quality improvements.
 
