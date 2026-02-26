@@ -1,8 +1,9 @@
 """FastAPI routes for PromptLab"""
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse  # Added import
 from fastapi.middleware.cors import CORSMiddleware
+from app.models import Tag
 from typing import Optional
 
 from app.models import (
@@ -286,3 +287,99 @@ def delete_collection(collection_id: str):
         storage.update_prompt(prompt.id, updated_prompt)
     
     return None
+
+@app.post("/prompts/{prompt_id}/tags", response_model=Prompt)
+def add_tag_to_prompt(prompt_id: str, tag_data: Tag):
+    """Add a new tag to a prompt.
+
+    Args:
+        prompt_id: The unique identifier of the prompt.
+        tag_data: The tag data to add.
+
+    Returns:
+        The updated Prompt with new tag.
+
+    Raises:
+        HTTPException: If the prompt is not found or tag already exists.
+    """
+    prompt = storage.get_prompt(prompt_id)
+    if not prompt:
+        raise HTTPException(status_code=404, detail="Prompt not available")
+
+    # Check for duplicate tag
+    if any(tag.name.lower() == tag_data.name.lower() for tag in prompt.tags):
+        raise HTTPException(status_code=400, detail="Tag already exists for this prompt.")
+
+    # Add tag to prompt
+    prompt.tags.append(tag_data)
+    storage.update_prompt(prompt_id, prompt)
+
+    return prompt
+
+
+@app.delete("/prompts/{prompt_id}/tags/{tag_id}", response_model=Prompt)
+def remove_tag_from_prompt(prompt_id: str, tag_id: str):
+    """Remove a tag from a prompt.
+
+    Args:
+        prompt_id: The unique identifier of the prompt.
+        tag_id: The unique identifier of the tag to remove.
+
+    Returns:
+        The updated Prompt without the tag.
+
+    Raises:
+        HTTPException: If the prompt or tag is not found.
+    """
+    prompt = storage.get_prompt(prompt_id)
+    if not prompt:
+        raise HTTPException(status_code=404, detail="Prompt not available")
+
+    # Remove tag by tag_id
+    updated_tags = [tag for tag in prompt.tags if tag.tag_id != tag_id]
+    
+    if len(updated_tags) == len(prompt.tags):
+        raise HTTPException(status_code=404, detail="Tag not found.")
+
+    prompt.tags = updated_tags
+    storage.update_prompt(prompt_id, prompt)
+
+    return prompt
+
+
+@app.get("/prompts", response_model=PromptList)
+def list_prompts(
+    collection_id: Optional[str] = None,
+    search: Optional[str] = None,
+    tags: Optional[str] = Query(None)
+):
+    """Retrieve a list of prompts, optionally filtered by collection, search terms, and tags.
+
+    Args:
+        collection_id: Optional; If provided, filters the prompts by the specified collection.
+        search: Optional; If provided, searches prompts based on the given term.
+        tags: Optional; Comma-separated list of tags to filter prompts.
+
+    Returns:
+        PromptList: A list of prompts with a total count that match the specified criteria.
+    """
+    prompts = storage.get_all_prompts()
+
+    # Filter by collection if specified
+    if collection_id:
+        prompts = filter_prompts_by_collection(prompts, collection_id)
+
+    # Search if query provided
+    if search:
+        prompts = search_prompts(prompts, search)
+
+    # Filter by tags if specified
+    if tags:
+        tag_set = {tag.strip().lower() for tag in tags.split(',')}
+        prompts = [prompt for prompt in prompts if
+                   any(tag.name.lower() in tag_set for tag in prompt.tags)]
+
+    # Sort by date (newest first)
+    prompts = sort_prompts_by_date(prompts, descending=True)
+
+    return PromptList(prompts=prompts, total=len(prompts))
