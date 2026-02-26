@@ -128,6 +128,37 @@ curl -X PUT "http://localhost:8000/prompts/{id}" -H "accept: application/json" -
 
 ---
 
+## Docker Setup
+
+If you prefer running the application in a Docker container, follow these steps:
+
+### Build the Docker Image
+
+Make sure you are inside the `promptlab` root directory and run:
+
+```bash
+# Build the Docker image
+docker build -t promptlab-api ./backend
+```
+
+### Run the Docker Container
+
+Once the image is built, start a container using:
+
+```bash
+# Run the Docker container
+docker run -p 8000:8000 promptlab-api
+```
+
+This will start the FastAPI server inside a Docker container, accessible at: [http://localhost:8000](http://localhost:8000)
+
+### Docker Notes
+- The Dockerfile uses the Python 3.10-slim image, which is lightweight and efficient.
+- The application is set to run using `uvicorn` on port 8000 by default.
+- Ensure Docker is installed and running on your system before executing these commands.
+
+---
+
 ## Tech Stack
 - **Backend Framework**: FastAPI
 - **Data Models**: Pydantic
