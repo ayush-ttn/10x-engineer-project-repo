@@ -20,7 +20,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install ruff pytest pytest-cov # Include other dependencies as needed
 
-    - name: Lint with flake8
+    - name: Lint with ruff
       run: |
         ruff check
 
