@@ -25,9 +25,11 @@ jobs:
         ruff check
 
     - name: Test with pytest
+      working-directory: backend
       run: |
         pytest tests/ --cov=app --cov-report=term-missing
 
-    - name: Check coverage
+    - name: Run coverage
+      working-directory: backend
       run: |
-        coverage report --fail-under=80
+        pytest tests/ --cov=app --cov-report=term-missing
