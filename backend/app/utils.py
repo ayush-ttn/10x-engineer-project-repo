@@ -4,9 +4,11 @@ from typing import List
 from app.models import Prompt
 
 
-def sort_prompts_by_date(prompts: List[Prompt], descending: bool = True) -> List[Prompt]:
+def sort_prompts_by_date(
+    prompts: List[Prompt], descending: bool = True
+) -> List[Prompt]:
     """Sort prompts by creation date.
-    
+
     Sorts in descending order (newest first) if descending=True, otherwise ascending.
     Note: There might be a bug here. Check the sort order!
 
@@ -20,7 +22,9 @@ def sort_prompts_by_date(prompts: List[Prompt], descending: bool = True) -> List
     return sorted(prompts, key=lambda p: p.created_at, reverse=descending)
 
 
-def filter_prompts_by_collection(prompts: List[Prompt], collection_id: str) -> List[Prompt]:
+def filter_prompts_by_collection(
+    prompts: List[Prompt], collection_id: str
+) -> List[Prompt]:
     """Filter prompts based on the specified collection ID.
 
     Args:
@@ -44,15 +48,16 @@ def search_prompts(prompts: List[Prompt], query: str) -> List[Prompt]:
     """
     query_lower = query.lower()
     return [
-        p for p in prompts 
-        if query_lower in p.title.lower() or 
-           (p.description and query_lower in p.description.lower())
+        p
+        for p in prompts
+        if query_lower in p.title.lower()
+        or (p.description and query_lower in p.description.lower())
     ]
 
 
 def validate_prompt_content(content: str) -> bool:
     """Check if prompt content is valid.
-    
+
     A valid prompt should:
     - Not be empty
     - Not be just whitespace
@@ -71,7 +76,7 @@ def validate_prompt_content(content: str) -> bool:
 
 def extract_variables(content: str) -> List[str]:
     """Extract template variables from prompt content.
-    
+
     Variables are in the format {{variable_name}}
 
     Args:
@@ -81,6 +86,6 @@ def extract_variables(content: str) -> List[str]:
         List[str]: A list of variable names extracted from the content.
     """
     import re
-    pattern = r'\{\{(\w+)\}\}'
-    return re.findall(pattern, content)
 
+    pattern = r"\{\{(\w+)\}\}"
+    return re.findall(pattern, content)

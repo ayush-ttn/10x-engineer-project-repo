@@ -17,7 +17,7 @@ class Storage:
         """
         self._prompts: Dict[str, Prompt] = {}
         self._collections: Dict[str, Collection] = {}
-    
+
     # ============== Prompt Operations ==============
 
     def create_prompt(self, prompt: Prompt) -> Prompt:
@@ -30,7 +30,7 @@ class Storage:
         """
         self._prompts[prompt.id] = prompt
         return prompt
-    
+
     def get_prompt(self, prompt_id: str) -> Optional[Prompt]:
         """Retrieve a prompt by its unique identifier.
 
@@ -40,7 +40,7 @@ class Storage:
             Optional[Prompt]: The Prompt object if found, otherwise None.
         """
         return self._prompts.get(prompt_id)
-    
+
     def get_all_prompts(self) -> List[Prompt]:
         """Retrieve all prompts from the storage.
 
@@ -48,7 +48,7 @@ class Storage:
             List[Prompt]: A list of all stored Prompt objects.
         """
         return list(self._prompts.values())
-    
+
     def update_prompt(self, prompt_id: str, prompt: Prompt) -> Optional[Prompt]:
         """Update an existing prompt in the storage.
 
@@ -63,7 +63,7 @@ class Storage:
             return None
         self._prompts[prompt_id] = prompt
         return prompt
-    
+
     def delete_prompt(self, prompt_id: str) -> bool:
         """Remove a prompt from the storage by its unique identifier.
 
@@ -77,9 +77,9 @@ class Storage:
             del self._prompts[prompt_id]
             return True
         return False
-    
+
     # ============== Collection Operations ==============
-    
+
     def create_collection(self, collection: Collection) -> Collection:
         """Add a new collection to the storage.
 
@@ -91,7 +91,7 @@ class Storage:
         """
         self._collections[collection.id] = collection
         return collection
-    
+
     def get_collection(self, collection_id: str) -> Optional[Collection]:
         """Retrieve a collection by its unique identifier.
 
@@ -102,7 +102,7 @@ class Storage:
             Optional[Collection]: The Collection object if found, otherwise None.
         """
         return self._collections.get(collection_id)
-    
+
     def get_all_collections(self) -> List[Collection]:
         """Retrieve all collections from the storage.
 
@@ -110,7 +110,7 @@ class Storage:
             List[Collection]: A list of all stored Collection objects.
         """
         return list(self._collections.values())
-    
+
     def delete_collection(self, collection_id: str) -> bool:
         """Remove a collection from the storage by its unique identifier.
 
@@ -123,7 +123,7 @@ class Storage:
             del self._collections[collection_id]
             return True
         return False
-    
+
     def get_prompts_by_collection(self, collection_id: str) -> List[Prompt]:
         """Retrieve prompts assigned to a specific collection.
 
@@ -134,9 +134,9 @@ class Storage:
             List[Prompt]: A list of prompts associated with the given collection ID.
         """
         return [p for p in self._prompts.values() if p.collection_id == collection_id]
-    
+
     # ============== Utility ==============
-    
+
     def clear(self):
         """Clear all prompts and collections from the storage.
 

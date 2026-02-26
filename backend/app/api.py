@@ -1,16 +1,20 @@
 """FastAPI routes for PromptLab"""
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import JSONResponse  # Added import
 from fastapi.middleware.cors import CORSMiddleware
 from app.models import Tag
 from typing import Optional
 
 from app.models import (
-    Prompt, PromptCreate, PromptUpdate,
-    Collection, CollectionCreate,
-    PromptList, CollectionList, HealthResponse,
-    get_current_time
+    Prompt,
+    PromptCreate,
+    PromptUpdate,
+    Collection,
+    CollectionCreate,
+    PromptList,
+    CollectionList,
+    HealthResponse,
+    get_current_time,
 )
 from app.storage import storage
 from app.utils import sort_prompts_by_date, filter_prompts_by_collection, search_prompts
@@ -20,7 +24,7 @@ from app import __version__
 app = FastAPI(
     title="PromptLab API",
     description="AI Prompt Engineering Platform",
-    version=__version__
+    version=__version__,
 )
 
 # CORS middleware
@@ -35,6 +39,7 @@ app.add_middleware(
 
 # ============== Health Check ==============
 
+
 @app.get("/health", response_model=HealthResponse)
 def health_check():
     """Perform a health check to ensure the API is running.
@@ -47,38 +52,59 @@ def health_check():
 
 # ============== Prompt Endpoints ==============
 
+
 @app.get("/prompts", response_model=PromptList)
 def list_prompts(
     collection_id: Optional[str] = None,
-    search: Optional[str] = None
+    search: Optional[str] = None,
+    tags: Optional[str] = Query(None),
 ):
-    """Retrieve a list of prompts, optionally filtered by collection and search terms.
+    """Retrieve a list of prompts, optionally filtered by collection, search terms, and tags.
 
     Args:
         collection_id: Optional; If provided, filters the prompts by the specified collection.
         search: Optional; If provided, searches prompts based on the given term.
+        tags: Optional; Comma-separated list of tags to filter prompts.
 
     Returns:
         PromptList: A list of prompts with a total count that match the specified criteria.
     """
     prompts = storage.get_all_prompts()
-    
+
     # Filter by collection if specified
     if collection_id:
         prompts = filter_prompts_by_collection(prompts, collection_id)
-    
+
     # Search if query provided
     if search:
         prompts = search_prompts(prompts, search)
-    
+
+    # Filter by tags if specified
+    if tags:
+        tag_set = {tag.strip().lower() for tag in tags.split(",")}
+        prompts = [
+            prompt
+            for prompt in prompts
+            if any(tag.name.lower() in tag_set for tag in prompt.tags)
+        ]
+
     # Sort by date (newest first)
-    # Note: There might be an issue with the sorting...
     prompts = sort_prompts_by_date(prompts, descending=True)
-    
+
     return PromptList(prompts=prompts, total=len(prompts))
 
 
-@app.get("/prompts/{prompt_id}", response_model=Prompt, responses={404: {"content": {"application/json": {"example": {"error": "Prompt not available"}}}}})
+@app.get(
+    "/prompts/{prompt_id}",
+    response_model=Prompt,
+    responses={
+        404: {
+            "content": {
+                "application/json": {"example": {"error": "Prompt not available"}}
+            }
+        }
+    },
+)
 def get_prompt(prompt_id: str):
     """Retrieve a prompt by its unique identifier.
 
@@ -95,7 +121,7 @@ def get_prompt(prompt_id: str):
     if not prompt:
         raise HTTPException(status_code=404, detail="Prompt not available")
     return prompt
-    
+
 
 @app.post("/prompts", response_model=Prompt, status_code=201)
 def create_prompt(prompt_data: PromptCreate):
@@ -115,7 +141,7 @@ def create_prompt(prompt_data: PromptCreate):
         collection = storage.get_collection(prompt_data.collection_id)
         if not collection:
             raise HTTPException(status_code=400, detail="Collection not found")
-    
+
     prompt = Prompt(**prompt_data.model_dump())
     return storage.create_prompt(prompt)
 
@@ -137,13 +163,13 @@ def update_prompt(prompt_id: str, prompt_data: PromptUpdate):
     existing = storage.get_prompt(prompt_id)
     if not existing:
         raise HTTPException(status_code=404, detail="Prompt not available")
-    
+
     # Validate collection if provided
     if prompt_data.collection_id:
         collection = storage.get_collection(prompt_data.collection_id)
         if not collection:
             raise HTTPException(status_code=404, detail="Collection not found")
-    
+
     updated_prompt = Prompt(
         id=existing.id,
         title=prompt_data.title,
@@ -151,13 +177,14 @@ def update_prompt(prompt_id: str, prompt_data: PromptUpdate):
         description=prompt_data.description,
         collection_id=prompt_data.collection_id,
         created_at=existing.created_at,
-        updated_at=get_current_time()
+        updated_at=get_current_time(),
     )
-    
+
     return storage.update_prompt(prompt_id, updated_prompt)
 
-
     # Handle PATCH for partially updating prompts
+
+
 @app.patch("/prompts/{prompt_id}", response_model=Prompt)
 def patch_prompt(prompt_id: str, prompt_data: PromptUpdate):
     """Partially update an existing prompt.
@@ -177,13 +204,21 @@ def patch_prompt(prompt_id: str, prompt_data: PromptUpdate):
         raise HTTPException(status_code=404, detail="Prompt not available")
 
     # Update only the fields provided in the request
-        # Update only the fields provided in the request
+    # Update only the fields provided in the request
     updated_prompt_data = {
-        "title": prompt_data.title if prompt_data.title is not None else existing_prompt.title,
-        "content": prompt_data.content if prompt_data.content is not None else existing_prompt.content,
-        "description": prompt_data.description if prompt_data.description is not None else existing_prompt.description,
-        "collection_id": prompt_data.collection_id if prompt_data.collection_id is not None else existing_prompt.collection_id,
-        "updated_at": get_current_time()
+        "title": prompt_data.title
+        if prompt_data.title is not None
+        else existing_prompt.title,
+        "content": prompt_data.content
+        if prompt_data.content is not None
+        else existing_prompt.content,
+        "description": prompt_data.description
+        if prompt_data.description is not None
+        else existing_prompt.description,
+        "collection_id": prompt_data.collection_id
+        if prompt_data.collection_id is not None
+        else existing_prompt.collection_id,
+        "updated_at": get_current_time(),
     }
     updated_prompt = existing_prompt.model_copy(update=updated_prompt_data)
 
@@ -238,7 +273,7 @@ def get_collection(collection_id: str):
     if not collection:
         raise HTTPException(status_code=404, detail="Collection not found")
     return collection
-    
+
 
 @app.post("/collections", response_model=Collection, status_code=201)
 def create_collection(collection_data: CollectionCreate):
@@ -282,11 +317,12 @@ def delete_collection(collection_id: str):
             description=prompt.description,
             collection_id=None,  # Disassociate the prompt
             created_at=prompt.created_at,
-            updated_at=get_current_time()
+            updated_at=get_current_time(),
         )
         storage.update_prompt(prompt.id, updated_prompt)
-    
+
     return None
+
 
 @app.post("/prompts/{prompt_id}/tags", response_model=Prompt)
 def add_tag_to_prompt(prompt_id: str, tag_data: Tag):
@@ -308,7 +344,9 @@ def add_tag_to_prompt(prompt_id: str, tag_data: Tag):
 
     # Check for duplicate tag
     if any(tag.name.lower() == tag_data.name.lower() for tag in prompt.tags):
-        raise HTTPException(status_code=400, detail="Tag already exists for this prompt.")
+        raise HTTPException(
+            status_code=400, detail="Tag already exists for this prompt."
+        )
 
     # Add tag to prompt
     prompt.tags.append(tag_data)
@@ -337,7 +375,7 @@ def remove_tag_from_prompt(prompt_id: str, tag_id: str):
 
     # Remove tag by tag_id
     updated_tags = [tag for tag in prompt.tags if tag.tag_id != tag_id]
-    
+
     if len(updated_tags) == len(prompt.tags):
         raise HTTPException(status_code=404, detail="Tag not found.")
 
@@ -346,40 +384,3 @@ def remove_tag_from_prompt(prompt_id: str, tag_id: str):
 
     return prompt
 
-
-@app.get("/prompts", response_model=PromptList)
-def list_prompts(
-    collection_id: Optional[str] = None,
-    search: Optional[str] = None,
-    tags: Optional[str] = Query(None)
-):
-    """Retrieve a list of prompts, optionally filtered by collection, search terms, and tags.
-
-    Args:
-        collection_id: Optional; If provided, filters the prompts by the specified collection.
-        search: Optional; If provided, searches prompts based on the given term.
-        tags: Optional; Comma-separated list of tags to filter prompts.
-
-    Returns:
-        PromptList: A list of prompts with a total count that match the specified criteria.
-    """
-    prompts = storage.get_all_prompts()
-
-    # Filter by collection if specified
-    if collection_id:
-        prompts = filter_prompts_by_collection(prompts, collection_id)
-
-    # Search if query provided
-    if search:
-        prompts = search_prompts(prompts, search)
-
-    # Filter by tags if specified
-    if tags:
-        tag_set = {tag.strip().lower() for tag in tags.split(',')}
-        prompts = [prompt for prompt in prompts if
-                   any(tag.name.lower() in tag_set for tag in prompt.tags)]
-
-    # Sort by date (newest first)
-    prompts = sort_prompts_by_date(prompts, descending=True)
-
-    return PromptList(prompts=prompts, total=len(prompts))
