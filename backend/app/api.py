@@ -49,6 +49,28 @@ def health_check():
     """
     return HealthResponse(status="healthy", version=__version__)
 
+# Utility function for prompt retrieval and validation
+
+def get_existing_prompt(prompt_id: str) -> Prompt:
+    """Fetch prompt and validate its existence.
+
+    This function retrieves a prompt from storage by its `prompt_id`.
+    If the prompt does not exist, it raises an HTTPException with a 404 status code.
+
+    Args:
+        prompt_id: The unique identifier of the prompt to retrieve.
+
+    Returns:
+        Prompt: The Prompt object associated with the given `prompt_id` if found.
+
+    Raises:
+        HTTPException: If no prompt exists for the given `prompt_id`, a 404 error is raised.
+    """
+    prompt = storage.get_prompt(prompt_id)
+    if not prompt:
+        raise HTTPException(status_code=404, detail="Prompt not available")
+    return prompt
+
 
 # ============== Prompt Endpoints ==============
 
@@ -117,10 +139,7 @@ def get_prompt(prompt_id: str):
     Raises:
         HTTPException: If the prompt is not found, raises a 404 error.
     """
-    prompt = storage.get_prompt(prompt_id)
-    if not prompt:
-        raise HTTPException(status_code=404, detail="Prompt not available")
-    return prompt
+    return get_existing_prompt(prompt_id)
 
 
 @app.post("/prompts", response_model=Prompt, status_code=201)
@@ -158,11 +177,9 @@ def update_prompt(prompt_id: str, prompt_data: PromptUpdate):
         The updated Prompt object.
 
     Raises:
-        HTTPException: If the prompt or the specified collection is not found, raises a 404 or 400 error respectively.
+        HTTPException: If the prompt or the specified collection is not found.
     """
-    existing = storage.get_prompt(prompt_id)
-    if not existing:
-        raise HTTPException(status_code=404, detail="Prompt not available")
+    existing = get_existing_prompt(prompt_id)
 
     # Validate collection if provided
     if prompt_data.collection_id:
@@ -172,17 +189,19 @@ def update_prompt(prompt_id: str, prompt_data: PromptUpdate):
 
     updated_prompt = Prompt(
         id=existing.id,
-        title=prompt_data.title,
-        content=prompt_data.content,
-        description=prompt_data.description,
-        collection_id=prompt_data.collection_id,
+        title=prompt_data.title or existing.title,
+        content=prompt_data.content or existing.content,
+        description=prompt_data.description or existing.description,
+        collection_id=prompt_data.collection_id or existing.collection_id,
         created_at=existing.created_at,
         updated_at=get_current_time(),
     )
 
     return storage.update_prompt(prompt_id, updated_prompt)
 
+
     # Handle PATCH for partially updating prompts
+
 
 
 @app.patch("/prompts/{prompt_id}", response_model=Prompt)
@@ -199,31 +218,16 @@ def patch_prompt(prompt_id: str, prompt_data: PromptUpdate):
     Raises:
         HTTPException: If the prompt is not found.
     """
-    existing_prompt = storage.get_prompt(prompt_id)
-    if not existing_prompt:
-        raise HTTPException(status_code=404, detail="Prompt not available")
+    existing_prompt = get_existing_prompt(prompt_id)
 
     # Update only the fields provided in the request
-    # Update only the fields provided in the request
-    updated_prompt_data = {
-        "title": prompt_data.title
-        if prompt_data.title is not None
-        else existing_prompt.title,
-        "content": prompt_data.content
-        if prompt_data.content is not None
-        else existing_prompt.content,
-        "description": prompt_data.description
-        if prompt_data.description is not None
-        else existing_prompt.description,
-        "collection_id": prompt_data.collection_id
-        if prompt_data.collection_id is not None
-        else existing_prompt.collection_id,
-        "updated_at": get_current_time(),
-    }
-    updated_prompt = existing_prompt.model_copy(update=updated_prompt_data)
+    updated_data = {key: value for key, value in prompt_data.model_dump().items() if value is not None}
+    updated_data['updated_at'] = get_current_time()
 
-    # Save the updated prompt
+    updated_prompt = existing_prompt.model_copy(update=updated_data)
+
     return storage.update_prompt(prompt_id, updated_prompt)
+
 
 
 @app.delete("/prompts/{prompt_id}", status_code=204)
