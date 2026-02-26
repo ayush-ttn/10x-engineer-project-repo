@@ -69,21 +69,37 @@ class PromptUpdate(BaseModel):
     collection_id: Optional[str] = None
 
 
+# ============== Tag Models ==============
+
+class Tag(BaseModel):
+    """
+    Represents a Tag that can be associated with multiple prompts.
+    Attributes:
+        tag_id: Unique identifier for the tag.
+        name: Name of the tag, must be unique and non-empty.
+    """
+    tag_id: str = Field(default_factory=generate_id)
+    name: str = Field(..., min_length=1, max_length=100)
+
+
+# Updated Prompt class to include relationships with Tags
 class Prompt(PromptBase):
     """
     Represents a stored prompt with metadata such as creation and update timestamps.
 
     Extends:
-        PromptBase with unique identifier and timestamps.
+        PromptBase with unique identifier, timestamps, and associated tags.
 
     Attributes:
         id: Unique identifier for the prompt.
         created_at: Timestamp when the prompt was created.
         updated_at: Timestamp when the prompt was last updated.
+        tags: Optional list of associated Tag objects.
     """
     id: str = Field(default_factory=generate_id)
     created_at: datetime = Field(default_factory=get_current_time)
     updated_at: datetime = Field(default_factory=get_current_time)
+    tags: List[Tag] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
@@ -94,7 +110,6 @@ class Prompt(PromptBase):
 class CollectionBase(BaseModel):
     """
     Represents the base structure of a collection.
-
     Attributes:
         name: The name of the collection, must be between 1 and 100 characters.
         description: An optional description of the collection, up to 500 characters.
@@ -114,7 +129,6 @@ class Collection(CollectionBase):
 
     Extends:
         CollectionBase with unique identifier and metadata.
-
     Attributes:
         id: Unique identifier for the collection.
         created_at: Timestamp when the collection was created.
@@ -131,7 +145,6 @@ class Collection(CollectionBase):
 class PromptList(BaseModel):
     """
     Represents a list of prompts alongside the total count.
-
     Attributes:
         prompts: A list of prompt objects.
         total: The total number of prompt objects available.

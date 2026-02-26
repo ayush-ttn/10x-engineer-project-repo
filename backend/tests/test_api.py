@@ -244,3 +244,125 @@ class TestCollections:
         if prompts:
             # Prompt exists with orphaned collection_id
             assert prompts[0]["collection_id"] == None
+
+
+class TestTags:
+    """Tests for tagging system endpoints."""
+    
+    def test_add_tag_to_prompt(self, client: TestClient, sample_prompt_data):
+        # Create a prompt first
+        create_response = client.post("/prompts", json=sample_prompt_data)
+        prompt_id = create_response.json()["id"]
+        
+        tag_json = {"name": "important"}
+        
+        # Add tag to the prompt
+        response = client.post(f"/prompts/{prompt_id}/tags", json=tag_json)
+        assert response.status_code == 200
+        data = response.json()
+        assert "tags" in data
+        assert "important" in [tag['name'] for tag in data["tags"]]
+
+    def test_remove_tag_from_prompt(self, client: TestClient, sample_prompt_data):
+        # Create a prompt first
+        create_response = client.post("/prompts", json=sample_prompt_data)
+        prompt_id = create_response.json()["id"]
+        
+        tag_json = {"name": "important"}
+        
+        # Add and then remove the tag
+        prompt_response = client.post(f"/prompts/{prompt_id}/tags", json=tag_json)
+        tag_id = prompt_response.json()["tags"][0]["tag_id"]
+
+        response = client.delete(f"/prompts/{prompt_id}/tags/{tag_id}")
+        assert response.status_code == 200
+        
+        # Verify tag removal
+        get_response = client.get(f"/prompts/{prompt_id}")
+        data = get_response.json()
+        assert all(tag['tag_id'] != 1 for tag in data.get("tags"))
+
+    def test_filter_prompts_by_tags(self, client: TestClient, sample_prompt_data):
+        # Create a prompt first and tag it
+        create_response = client.post("/prompts", json=sample_prompt_data)
+        prompt_id = create_response.json()["id"]
+        
+        tag_json = {"name": "urgent"}
+        client.post(f"/prompts/{prompt_id}/tags", json=tag_json)
+        
+        # Filter prompts based on the tag
+        response = client.get(f"/prompts?tags=urgent")
+        assert response.status_code == 200
+        
+        for prompt in response.json()["prompts"]:
+            assert any(tag['name'] == "urgent" for tag in prompt.get("tags"))
+
+
+class TestTagEdgeCases:
+    """Edge case tests for the tagging system."""
+
+    def test_add_duplicate_tag_to_prompt(self, client: TestClient, sample_prompt_data):
+        # Create a prompt first
+        create_response = client.post("/prompts", json=sample_prompt_data)
+        prompt_id = create_response.json()["id"]
+        
+        tag_json = {"name": "duplicate-tag"}
+        
+        # Add the same tag twice
+        client.post(f"/prompts/{prompt_id}/tags", json=tag_json)
+        response = client.post(f"/prompts/{prompt_id}/tags", json=tag_json)
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Tag already exists for this prompt."
+
+    def test_add_tag_exceeding_length(self, client: TestClient, sample_prompt_data):
+         # Create a prompt first
+        create_response = client.post("/prompts", json=sample_prompt_data)
+        prompt_id = create_response.json()["id"]
+        
+        long_tag_json = {"name": "x" * 256}  # Assuming 100 is max length
+        
+        response = client.post(f"/prompts/{prompt_id}/tags", json=long_tag_json)
+        assert response.status_code == 422  # Ensure we expect the 422 response
+
+
+    def test_remove_tag_in_use(self, client: TestClient, sample_prompt_data):
+        # Create two prompts and a shared tag
+        response1 = client.post("/prompts", json=sample_prompt_data)
+        prompt_id1 = response1.json()["id"]
+        
+        sample_prompt_data2 = sample_prompt_data.copy()
+        sample_prompt_data2["title"] = "Another Prompt"
+        response2 = client.post("/prompts", json=sample_prompt_data2)
+        prompt_id2 = response2.json()["id"]
+        
+        tag_json = {"name": "shared-tag"}
+        prompt_response1 = client.post(f"/prompts/{prompt_id1}/tags", json=tag_json)
+        tag_id1 = prompt_response1.json()["tags"][0]["tag_id"]
+
+        prompt_response2 = client.post(f"/prompts/{prompt_id2}/tags", json=tag_json)
+        tag_id2 = prompt_response2.json()["tags"][0]["tag_id"]
+        
+        # Remove from one prompt
+        response = client.delete(f"/prompts/{prompt_id1}/tags/{tag_id1}")
+        assert response.status_code == 200
+
+        # Make sure the tag still exists for the second prompt
+        get_response = client.get(f"/prompts/{prompt_id2}")
+        assert any(tag['name'] == "shared-tag" for tag in get_response.json().get("tags"))
+
+    def test_case_sensitivity_in_tags(self, client: TestClient, sample_prompt_data):
+        # Create a prompt first
+        create_response = client.post("/prompts", json=sample_prompt_data)
+        prompt_id = create_response.json()["id"]
+        
+        tag_json_lower = {"name": "case-sensitive"}
+        tag_json_upper = {"name": "CASE-SENSITIVE"}
+        
+        # Add tags with different cases
+        client.post(f"/prompts/{prompt_id}/tags", json=tag_json_lower)
+        response = client.post(f"/prompts/{prompt_id}/tags", json=tag_json_upper)
+        
+        # Verify case sensitivity based on system design
+        # Assuming tags should be case-insensitive and considered duplicates
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Tag already exists for this prompt."
