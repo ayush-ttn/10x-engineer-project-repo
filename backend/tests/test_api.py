@@ -333,6 +333,8 @@ class TestTagEdgeCases:
         prompt_response1 = client.post(f"/prompts/{prompt_id1}/tags", json=tag_json)
         tag_id1 = prompt_response1.json()["tags"][0]["tag_id"]
 
+        client.post(f"/prompts/{prompt_id2}/tags", json=tag_json)
+
         # Remove from one prompt
         response = client.delete(f"/prompts/{prompt_id1}/tags/{tag_id1}")
         assert response.status_code == 200
