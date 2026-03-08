@@ -195,6 +195,7 @@ def update_prompt(prompt_id: str, prompt_data: PromptUpdate):
         collection_id=prompt_data.collection_id or existing.collection_id,
         created_at=existing.created_at,
         updated_at=get_current_time(),
+        tags=existing.tags,
     )
 
     return storage.update_prompt(prompt_id, updated_prompt)
