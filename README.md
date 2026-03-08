@@ -28,19 +28,26 @@ PromptLab is a backend service designed for managing prompts and their collectio
 
 To set up the backend locally:
 
+**Option 1: Virtual environment (recommended on macOS/Linux)**
+
+On macOS with Homebrew Python (or when you see "externally-managed-environment"), use a venv:
+
 ```bash
-# Clone the repository
-$ git clone <repo-url>
-$ cd promptlab
+cd backend
+python3 -m venv venv
+source venv/bin/activate    # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python main.py
+```
 
-# Navigate to the backend directory
-$ cd backend
+Leave the venv activated whenever you work on the backend. To deactivate later: `deactivate`.
 
-# Install dependencies
-$ pip install -r requirements.txt
+**Option 2: System Python (if allowed)**
 
-# Run the application
-$ python main.py
+```bash
+cd backend
+pip install -r requirements.txt
+python main.py
 ```
 
 This will start the FastAPI server at: [http://localhost:8000](http://localhost:8000)
@@ -53,6 +60,51 @@ Run unit tests to ensure everything is working smoothly:
 $ cd backend
 $ pytest tests/ -v
 ```
+
+---
+
+## Full-Stack Application (Frontend + Backend)
+
+The React frontend (Week 4) connects to the backend API. To run and verify the complete application:
+
+**Terminal 1 — Backend:**
+
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python main.py
+```
+
+**Terminal 2 — Frontend:**
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open **http://localhost:5173**. Verify:
+
+- [ ] Prompts display in a list/grid
+- [ ] Can create a new prompt (modal or form)
+- [ ] Can edit an existing prompt
+- [ ] Can delete a prompt (with confirmation)
+- [ ] Collections list and create/delete work
+- [ ] Search and filter by collection work
+- [ ] Loading states, error messages, and empty states appear as expected
+- [ ] Layout is responsive (try a narrow viewport)
+
+**Frontend tests:**
+
+```bash
+cd frontend
+npm run test:run
+npm run build
+```
+
+CI (`.github/workflows/ci.yml`) runs both backend tests and frontend tests + build on push and pull requests.
 
 ---
 
