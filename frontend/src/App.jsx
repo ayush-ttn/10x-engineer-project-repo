@@ -1,6 +1,4 @@
 import { Routes, Route } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import { getCollections } from './api/collections'
 import Layout from './components/Layout'
 import PromptList from './components/PromptList'
 import PromptDetail from './pages/PromptDetail'
@@ -8,17 +6,9 @@ import PromptForm from './pages/PromptForm'
 import CollectionList from './pages/CollectionList'
 import CollectionForm from './pages/CollectionForm'
 
-function AppContent() {
-  const [collections, setCollections] = useState([])
-
-  useEffect(() => {
-    getCollections()
-      .then((data) => setCollections(data.collections || []))
-      .catch(() => {})
-  }, [])
-
+export default function App() {
   return (
-    <Layout collections={collections}>
+    <Layout>
       <Routes>
         <Route path="/" element={<PromptList />} />
         <Route path="/prompts/new" element={<PromptForm />} />
@@ -29,8 +19,4 @@ function AppContent() {
       </Routes>
     </Layout>
   )
-}
-
-export default function App() {
-  return <AppContent />
 }
